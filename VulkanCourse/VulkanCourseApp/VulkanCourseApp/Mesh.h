@@ -7,6 +7,10 @@
 
 #include "Utilities.h"
 
+struct UboModel {
+   glm::mat4 model;
+};
+
 class Mesh
 {
 public:
@@ -17,6 +21,9 @@ public:
 
    void Deinit();
 
+   void SetModel(glm::mat4 newModel);
+   UboModel GetModel();
+
    uint32_t GetVertexCount();
    VkBuffer GetVertexBuffer();
 
@@ -26,6 +33,8 @@ public:
 private:
    void CreateVertexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, std::vector<Vertex>* vertices);
    void CreateIndexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, std::vector<uint32_t>* indices);
+
+   UboModel m_uboModel;
 
    uint32_t m_iVertexCount;
    VkBuffer m_vkVertexBuffer;

@@ -52,7 +52,19 @@ int main()
       {
          angle -= 360.0f;
       }
-      //g_vkRenderer.UpdateModel(glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f)));
+
+      glm::mat4 firstModel(1.0f);
+      glm::mat4 secondModel(1.0f);
+
+      firstModel = glm::translate(firstModel, glm::vec3(-2.0f, 0.0f, -5.0f));
+      firstModel = glm::rotate(firstModel, glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
+
+      secondModel = glm::translate(secondModel, glm::vec3(2.0f, 0.0f, -5.0f));
+      secondModel = glm::rotate(secondModel, glm::radians(-angle*100), glm::vec3(0.0f, 0.0f, 1.0f));
+
+      g_vkRenderer.UpdateModel(0, firstModel);
+      g_vkRenderer.UpdateModel(1, secondModel);
+
       g_vkRenderer.Draw();
    }
 

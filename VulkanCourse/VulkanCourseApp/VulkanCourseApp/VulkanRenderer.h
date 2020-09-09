@@ -22,7 +22,7 @@ public:
    int32_t Init(GLFWwindow* newWindow);
    void Deinit();
 
-   void UpdateModel(glm::mat4 newModel);
+   void UpdateModel(uint32_t modelId, glm::mat4 newModel);
 
    void Draw();
 
@@ -47,13 +47,16 @@ private:
    void CreateDescriptorPool();
    void CreateDescriptorSets();
 
-   void UpdateUniformBuffer(uint32_t imageIndex);
+   void UpdateUniformBuffers(uint32_t imageIndex);
 
    // - Record Functions
    void RecordCommands();
 
    // - Get Functions.
    void GetPhysicalDevice();
+
+   // - Allocate Functions.
+   void AllocateDynamicBufferTransferSpace();
 
    // - Support Functions.
    // -- Checker Functions.
@@ -85,11 +88,10 @@ private:
    std::vector<Mesh> m_vecMesh;
 
    // Scene Settings.
-   struct MVP {
+   struct UboViewProjection {
       glm::mat4 projection;
       glm::mat4 view;
-      glm::mat4 model;
-   } m_matMvp;
+   } m_uboViewProjection;
 
    // Vulkan Components.
    // - Main.
@@ -113,8 +115,15 @@ private:
    VkDescriptorPool m_vkDescriptorPool;
    std::vector<VkDescriptorSet> m_vecDescriptorSets;
 
-   std::vector<VkBuffer> m_vecUniformBuffer;
-   std::vector<VkDeviceMemory> m_vecUniformBufferMemory;
+   std::vector<VkBuffer> m_vecVpUniformBuffer;
+   std::vector<VkDeviceMemory> m_vecVpUniformBufferMemory;
+
+   std::vector<VkBuffer> m_vecModelDUniformBuffer;
+   std::vector<VkDeviceMemory> m_vecModelDUniformBufferMemory;
+
+   VkDeviceSize m_vkMinUniformBufferOffset;
+   size_t m_vkModelUniformAlignment;
+   UboModel* m_uboModelTransferSpace;
 
    // - Pipeline.
    VkPipeline m_vkGraphicsPipeline;
