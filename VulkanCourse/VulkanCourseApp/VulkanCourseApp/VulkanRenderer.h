@@ -2,6 +2,8 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+
+#include <GLM/glm.hpp>
 #include <GLM/gtc/matrix_transform.hpp>
 
 #include <stdexcept>
@@ -11,133 +13,127 @@
 #include <array>
 
 #include "Mesh.h"
+#include "VulkanValidation.h"
 #include "Utilities.h"
 
 class VulkanRenderer
 {
 public:
-   VulkanRenderer();
-   ~VulkanRenderer();
+	VulkanRenderer();
 
-   int32_t Init(GLFWwindow* newWindow);
-   void Deinit();
+	int init(GLFWwindow * newWindow);
 
-   void UpdateModel(glm::mat4 newModel);
+	void updateModel(glm::mat4 newModel);
 
-   void Draw();
+	void draw();
+	void cleanup();
+
+	~VulkanRenderer();
 
 private:
-   /***********************************************************
-   ** Vulkan Functions.
-   ***********************************************************/
-   // - Create Functions.
-   void CreateInstance();
-   void CreateLogicalDevice();
-   void CreateSurface();
-   void CreateSwapchain();
-   void CreateRenderPass();
-   void CreateDescriptorSetLayout();
-   void CreateGraphicsPipeline();
-   void CreateFrameBuffers();
-   void CreateCommandPool();
-   void CreateCommandBuffers();
-   void CreateSynchronization();
+	GLFWwindow * window;
 
-   void CreateUniformBuffers();
-   void CreateDescriptorPool();
-   void CreateDescriptorSets();
+	int currentFrame = 0;
 
-   void UpdateUniformBuffer(uint32_t imageIndex);
+	// Scene Objects
+	std::vector<Mesh> meshList;
 
-   // - Record Functions
-   void RecordCommands();
+	// Scene Settings
+	struct MVP {
+		glm::mat4 projection;
+		glm::mat4 view;
+		glm::mat4 model;
+	} mvp;
 
-   // - Get Functions.
-   void GetPhysicalDevice();
+	// Vulkan Components
+	// - Main
+	VkInstance instance;
+	VkDebugReportCallbackEXT callback;
+	struct {
+		VkPhysicalDevice physicalDevice;
+		VkDevice logicalDevice;
+	} mainDevice;
+	VkQueue graphicsQueue;
+	VkQueue presentationQueue;
+	VkSurfaceKHR surface;
+	VkSwapchainKHR swapchain;
 
-   // - Support Functions.
-   // -- Checker Functions.
-   bool CheckInstanceExtensionSupport(std::vector<const char*>* checkExtensions);
-   bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
-   bool CheckDeviceSuitable(VkPhysicalDevice device);
+	std::vector<SwapchainImage> swapChainImages;
+	std::vector<VkFramebuffer> swapChainFramebuffers;
+	std::vector<VkCommandBuffer> commandBuffers;
 
-   // -- Getter Functions.
-   QueueFamilyIndices GetQueueFamilies(VkPhysicalDevice device);
-   SwapchainDetails GetSwapchainDetails(VkPhysicalDevice device);
+	// - Descriptors
+	VkDescriptorSetLayout descriptorSetLayout;
 
-   // -- Choose Functions.
-   VkSurfaceFormatKHR ChooseBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats);
-   VkPresentModeKHR ChooseBestPresentationMode(const std::vector<VkPresentModeKHR>& presentationModes);
-   VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities);
+	VkDescriptorPool descriptorPool;
+	std::vector<VkDescriptorSet> descriptorSets;
 
-   // -- Create Functions.
-   VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
-   VkShaderModule CreateShaderModule(const std::vector<char>& code);
+	std::vector<VkBuffer> uniformBuffer;
+	std::vector<VkDeviceMemory> uniformBufferMemory;
 
-   /***********************************************************
-   ** Variable Declarations.
-   ***********************************************************/
-   GLFWwindow* m_vkWindow;
+	// - Pipeline
+	VkPipeline graphicsPipeline;
+	VkPipelineLayout pipelineLayout;
+	VkRenderPass renderPass;
 
-   uint32_t m_iCurrentFrame = 0;
+	// - Pools
+	VkCommandPool graphicsCommandPool;
 
-   // Scene Objects.
-   std::vector<Mesh> m_vecMesh;
+	// - Utility
+	VkFormat swapChainImageFormat;
+	VkExtent2D swapChainExtent;
 
-   // Scene Settings.
-   struct MVP {
-      glm::mat4 projection;
-      glm::mat4 view;
-      glm::mat4 model;
-   } m_matMvp;
+	// - Synchronisation
+	std::vector<VkSemaphore> imageAvailable;
+	std::vector<VkSemaphore> renderFinished;
+	std::vector<VkFence> drawFences;
 
-   // Vulkan Components.
-   // - Main.
-   VkInstance m_vkInstance;
-   struct{
-      VkPhysicalDevice physicalDevice;
-      VkDevice logicalDevice;
-   } m_vkMainDevice;
-   VkQueue m_vkGraphicsQueue;
-   VkQueue m_vkPresentationQueue;
-   VkSurfaceKHR m_vkSurface;
-   VkSwapchainKHR m_vkSwapchain;
+	// Vulkan Functions
+	// - Create Functions
+	void createInstance();
+	void createDebugCallback();
+	void createLogicalDevice();
+	void createSurface();
+	void createSwapChain();
+	void createRenderPass();
+	void createDescriptorSetLayout();
+	void createGraphicsPipeline();
+	void createFramebuffers();
+	void createCommandPool();
+	void createCommandBuffers();
+	void createSynchronisation();
 
-   std::vector<SwapchainImage> m_vecSwapchainImages;
-   std::vector<VkFramebuffer> m_vecSwapchainFramebuffers;
-   std::vector<VkCommandBuffer> m_vecCommandBuffers;
+	void createUniformBuffers();
+	void createDescriptorPool();
+	void createDescriptorSets();
 
-   // - Descriptors
-   VkDescriptorSetLayout m_vkDescriptorSetLayout;
+	void updateUniformBuffer(uint32_t imageIndex);
 
-   VkDescriptorPool m_vkDescriptorPool;
-   std::vector<VkDescriptorSet> m_vecDescriptorSets;
+	// - Record Functions
+	void recordCommands();
 
-   std::vector<VkBuffer> m_vecUniformBuffer;
-   std::vector<VkDeviceMemory> m_vecUniformBufferMemory;
+	// - Get Functions
+	void getPhysicalDevice();
 
-   // - Pipeline.
-   VkPipeline m_vkGraphicsPipeline;
-   VkPipelineLayout m_vkPipelineLayout;
-   VkRenderPass m_vkRenderPass;
+	// - Support Functions
+	// -- Checker Functions
+	bool checkInstanceExtensionSupport(std::vector<const char*> * checkExtensions);
+	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+	bool checkValidationLayerSupport();
+	bool checkDeviceSuitable(VkPhysicalDevice device);
 
-   // - Pools.
-   VkCommandPool m_vkGraphicsCommandPool;
+	// -- Getter Functions
+	QueueFamilyIndices getQueueFamilies(VkPhysicalDevice device);
+	SwapChainDetails getSwapChainDetails(VkPhysicalDevice device);
 
-   // - Utility.
-   VkFormat m_vkSwapchainImageFormat;
-   VkExtent2D m_vkSwapchainExtent;
+	// -- Choose Functions
+	VkSurfaceFormatKHR chooseBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &formats);
+	VkPresentModeKHR chooseBestPresentationMode(const std::vector<VkPresentModeKHR> presentationModes);
+	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &surfaceCapabilities);
 
-   // - Synchronization.
-   std::vector<VkSemaphore> m_vecSemImageAvailable;
-   std::vector<VkSemaphore> m_vecSemRenderFinished;
-   std::vector<VkFence> m_vecDrawFences;
+	// -- Create Functions
+	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+	VkShaderModule createShaderModule(const std::vector<char> &code);
 
-#ifdef VK_DEBUG
-   const std::vector<const char*> validationLayers = {
-      "VK_LAYER_KHRONOS_validation"
-   };
-   bool checkValidationLayerSupport();
-#endif
 };
 

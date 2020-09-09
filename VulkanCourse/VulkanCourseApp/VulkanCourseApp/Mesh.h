@@ -10,32 +10,34 @@
 class Mesh
 {
 public:
-   Mesh();
-   Mesh(VkPhysicalDevice newPhysicalDevice, VkDevice newDevice, VkQueue transferQueue,
-        VkCommandPool transferCommandPool, std::vector<Vertex>* vertices, std::vector<uint32_t>* indices);
-   ~Mesh();
+	Mesh();
+	Mesh(VkPhysicalDevice newPhysicalDevice, VkDevice newDevice, 
+		VkQueue transferQueue, VkCommandPool transferCommandPool, 
+		std::vector<Vertex> * vertices, std::vector<uint32_t> * indices);
 
-   void Deinit();
+	int getVertexCount();
+	VkBuffer getVertexBuffer();
 
-   uint32_t GetVertexCount();
-   VkBuffer GetVertexBuffer();
+	int getIndexCount();
+	VkBuffer getIndexBuffer();
 
-   uint32_t GetIndexCount();
-   VkBuffer GetIndexBuffer();
+	void destroyBuffers();
+
+	~Mesh();
 
 private:
-   void CreateVertexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, std::vector<Vertex>* vertices);
-   void CreateIndexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, std::vector<uint32_t>* indices);
+	int vertexCount;
+	VkBuffer vertexBuffer;
+	VkDeviceMemory vertexBufferMemory;
 
-   uint32_t m_iVertexCount;
-   VkBuffer m_vkVertexBuffer;
-   VkDeviceMemory m_vkVertexBufferMemory;
+	int indexCount;
+	VkBuffer indexBuffer;
+	VkDeviceMemory indexBufferMemory;
 
-   uint32_t m_iIndexCount;
-   VkBuffer m_vkIndexBuffer;
-   VkDeviceMemory m_vkIndexBufferMemory;
+	VkPhysicalDevice physicalDevice;
+	VkDevice device;
 
-   VkPhysicalDevice m_vkPhysicalDevice;
-   VkDevice m_vkLogicalDevice;
+	void createVertexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, std::vector<Vertex> * vertices);
+	void createIndexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, std::vector<uint32_t> * indices);
 };
 
