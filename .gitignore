@@ -1,7 +1,9 @@
-VulkanCourse\VulkanCourseApp\.vs\*
-VulkanCourse\VulkanCourseApp\Debug\*
-VulkanCourse\VulkanCourseApp\Release\*
-VulkanCourse\VulkanCourseApp\VulkanCourseApp\Debug\*
-VulkanCourse\VulkanCourseApp\VulkanCourseApp\Release\*
+VulkanCourse/VulkanCourseApp/.vs/*
+VulkanCourse/VulkanCourseApp/Debug/*
+VulkanCourse/VulkanCourseApp/Release/*
+VulkanCourse/VulkanCourseApp/x64/*
+VulkanCourse/VulkanCourseApp/VulkanCourseApp/Debug/*
+VulkanCourse/VulkanCourseApp/VulkanCourseApp/Release/*
+VulkanCourse/VulkanCourseApp/VulkanCourseApp/x64/*
 
-VulkanCourse\VulkanCourseApp\VulkanCourseApp\VulkanCourseApp.vcxproj.user
+VulkanCourse/VulkanCourseApp/VulkanCourseApp/VulkanCourseApp.vcxproj.user
