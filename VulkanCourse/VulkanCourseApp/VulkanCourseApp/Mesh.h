@@ -7,7 +7,7 @@
 
 #include "Utilities.h"
 
-struct UboModel {
+struct Model {
    glm::mat4 model;
 };
 
@@ -22,7 +22,7 @@ public:
    void Deinit();
 
    void SetModel(glm::mat4 newModel);
-   UboModel GetModel();
+   Model GetModel();
 
    uint32_t GetVertexCount();
    VkBuffer GetVertexBuffer();
@@ -34,7 +34,7 @@ private:
    void CreateVertexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, std::vector<Vertex>* vertices);
    void CreateIndexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, std::vector<uint32_t>* indices);
 
-   UboModel m_uboModel;
+   Model m_model;
 
    uint32_t m_iVertexCount;
    VkBuffer m_vkVertexBuffer;
