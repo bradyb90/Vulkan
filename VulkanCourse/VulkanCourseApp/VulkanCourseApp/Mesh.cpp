@@ -83,7 +83,7 @@ void Mesh::CreateVertexBuffer(VkQueue transferQueue, VkCommandPool transferComma
    // -- MAP MEMORY TO VERTEX BUFFER --
    void* data;                                                                         // 1. Create pointer to a point in normal memory.
    CREATION_SUCCEEDED(vkMapMemory(m_vkLogicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data),
-      "Failed to map staging buffer memory!")                                 // 2. "Map" the vertex buffer memory to that point.
+      "Failed to map staging buffer memory!");                                         // 2. "Map" the vertex buffer memory to that point.
    memcpy(data, vertices->data(), static_cast<uint32_t>(bufferSize));                  // 3. Copy memory from vertices vector to the point.
    vkUnmapMemory(m_vkLogicalDevice, stagingBufferMemory);                              // 4. Unmap the vertex buffer memory.
 
@@ -117,7 +117,7 @@ void Mesh::CreateIndexBuffer(VkQueue transferQueue, VkCommandPool transferComman
 
    // -- MAP MEMORY TO VERTEX BUFFER --
    void* data;
-   CREATION_SUCCEEDED(vkMapMemory(m_vkLogicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data), "Failed to map staging buffer memory!")
+   CREATION_SUCCEEDED(vkMapMemory(m_vkLogicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data), "Failed to map staging buffer memory!");
    memcpy(data, indices->data(), static_cast<uint32_t>(bufferSize));
    vkUnmapMemory(m_vkLogicalDevice, stagingBufferMemory);
 

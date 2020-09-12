@@ -29,6 +29,8 @@ int32_t VulkanRenderer::Init(GLFWwindow* newWindow)
       CreateFrameBuffers();
       CreateCommandPool();
 
+      int firstTexture = CreateTexture("giraffe.jpg");
+
       m_uboViewProjection.projection = glm::perspective(glm::radians(45.0f), (float)m_vkSwapchainExtent.width / (float) m_vkSwapchainExtent.height, 0.1f, 100.0f);
       m_uboViewProjection.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -85,6 +87,12 @@ void VulkanRenderer::Deinit()
    vkDeviceWaitIdle(m_vkMainDevice.logicalDevice);
 
    //_aligned_free(m_uboModelTransferSpace);
+
+   for (size_t i = 0; i < m_vkTextureImages.size(); i++)
+   {
+      vkDestroyImage(m_vkMainDevice.logicalDevice, m_vkTextureImages[i], nullptr);
+      vkFreeMemory(m_vkMainDevice.logicalDevice, m_vkTextureImageMemory[i], nullptr);
+   }
 
    vkDestroyImageView(m_vkMainDevice.logicalDevice, m_vkDepthBufferImageView, nullptr);
    vkDestroyImage(m_vkMainDevice.logicalDevice, m_vkDepthBufferImage, nullptr);
@@ -169,7 +177,7 @@ void VulkanRenderer::Draw()
    submitInfo.pSignalSemaphores = &m_vecSemRenderFinished[m_iCurrentFrame]; // Semaphores to signal when command buffer finishes.
 
    // Submit command buffer to queue.
-   CREATION_SUCCEEDED(vkQueueSubmit(m_vkGraphicsQueue, 1, &submitInfo, m_vecDrawFences[m_iCurrentFrame]), "Failed to submit queue!")
+   CREATION_SUCCEEDED(vkQueueSubmit(m_vkGraphicsQueue, 1, &submitInfo, m_vecDrawFences[m_iCurrentFrame]), "Failed to submit queue!");
 
    // -- PRESENT RENDERED IMAGE TO SCREEN --
    VkPresentInfoKHR presentInfo = {};
@@ -181,7 +189,7 @@ void VulkanRenderer::Draw()
    presentInfo.pImageIndices = &imageIndex;                       // Index of images in swaphchain(s) to present.
 
    // Present image.
-   CREATION_SUCCEEDED(vkQueuePresentKHR(m_vkPresentationQueue, &presentInfo), "Failed to present Image!")
+   CREATION_SUCCEEDED(vkQueuePresentKHR(m_vkPresentationQueue, &presentInfo), "Failed to present Image!");
 
    // Keep at bottom - incrementing draw frame.
    m_iCurrentFrame = (m_iCurrentFrame + 1) % MAX_FRAME_DRAWS;
@@ -246,7 +254,7 @@ void VulkanRenderer::CreateInstance()
    createInfo.ppEnabledExtensionNames = instanceExtensions.data();
 
    // Create instace.
-   CREATION_SUCCEEDED(vkCreateInstance(&createInfo, nullptr, &m_vkInstance), "Failed to create a Vulkan Instance!")
+   CREATION_SUCCEEDED(vkCreateInstance(&createInfo, nullptr, &m_vkInstance), "Failed to create a Vulkan Instance!");
 }
 
 void VulkanRenderer::CreateLogicalDevice()
@@ -271,7 +279,7 @@ void VulkanRenderer::CreateLogicalDevice()
       queueCreateinfos.push_back(queueCreateInfo);
    }
 
-   // Information to create logical device. (sometimes called "device")
+   // Information to create logical device. (sometimes called "device");
    VkDeviceCreateInfo deviceCreateInfo = {};
    deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
    deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateinfos.size());   // Numver of queue create infos.
@@ -283,7 +291,7 @@ void VulkanRenderer::CreateLogicalDevice()
    deviceCreateInfo.pEnabledFeatures = &deviceFeatures;                                      // Physical device features that the logical device will use.
 
    // Create the logical device for the given physical device.
-   CREATION_SUCCEEDED(vkCreateDevice(m_vkMainDevice.physicalDevice, &deviceCreateInfo, nullptr, &m_vkMainDevice.logicalDevice), "Failed to create a logical device!")
+   CREATION_SUCCEEDED(vkCreateDevice(m_vkMainDevice.physicalDevice, &deviceCreateInfo, nullptr, &m_vkMainDevice.logicalDevice), "Failed to create a logical device!");
 
    // Queues are created at the same time as the device. Store handle.
    vkGetDeviceQueue(m_vkMainDevice.logicalDevice, indices.graphicsFamily, 0, &m_vkGraphicsQueue);
@@ -361,7 +369,7 @@ void VulkanRenderer::CreateSwapchain()
    swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
    // Create Swapchain
-   CREATION_SUCCEEDED(vkCreateSwapchainKHR(m_vkMainDevice.logicalDevice, &swapchainCreateInfo, nullptr, &m_vkSwapchain), "Failed to create a Swapchain!")
+   CREATION_SUCCEEDED(vkCreateSwapchainKHR(m_vkMainDevice.logicalDevice, &swapchainCreateInfo, nullptr, &m_vkSwapchain), "Failed to create a Swapchain!");
 
    // Store for later reference.
    m_vkSwapchainImageFormat = surfaceFormat.format;
@@ -474,7 +482,7 @@ void VulkanRenderer::CreateRenderPass()
    renderPassCreateInfo.dependencyCount = static_cast<uint32_t>(subpassDependencies.size());
    renderPassCreateInfo.pDependencies = subpassDependencies.data();
 
-   CREATION_SUCCEEDED(vkCreateRenderPass(m_vkMainDevice.logicalDevice, &renderPassCreateInfo, nullptr, &m_vkRenderPass), "Failed to create a Render Pass!")
+   CREATION_SUCCEEDED(vkCreateRenderPass(m_vkMainDevice.logicalDevice, &renderPassCreateInfo, nullptr, &m_vkRenderPass), "Failed to create a Render Pass!");
 }
 
 void VulkanRenderer::CreateDescriptorSetLayout()
@@ -504,7 +512,7 @@ void VulkanRenderer::CreateDescriptorSetLayout()
    layoutCreateInfo.pBindings = layoutBindings.data();                                 // Array of binding infos.
 
    // Create descriptor set layout.
-   CREATION_SUCCEEDED(vkCreateDescriptorSetLayout(m_vkMainDevice.logicalDevice, &layoutCreateInfo, nullptr, &m_vkDescriptorSetLayout), "Failed to create a descriptor set layout!")
+   CREATION_SUCCEEDED(vkCreateDescriptorSetLayout(m_vkMainDevice.logicalDevice, &layoutCreateInfo, nullptr, &m_vkDescriptorSetLayout), "Failed to create a descriptor set layout!");
 }
 
 void VulkanRenderer::CreatePushConstantRange()
@@ -719,7 +727,7 @@ void VulkanRenderer::CreateGraphicsPipeline()
    pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;                       // Existing pipeline to derive from.
    pipelineCreateInfo.basePipelineIndex = -1;                                    // Index of pipeline being created to derive from. (incase creating multiple at once)
 
-   CREATION_SUCCEEDED(vkCreateGraphicsPipelines(m_vkMainDevice.logicalDevice, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &m_vkGraphicsPipeline), "Failed to a create Pipeline!")
+   CREATION_SUCCEEDED(vkCreateGraphicsPipelines(m_vkMainDevice.logicalDevice, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &m_vkGraphicsPipeline), "Failed to a create Pipeline!");
 
    // Clean up after pipeline created.
    vkDestroyShaderModule(m_vkMainDevice.logicalDevice, fragmentShaderModule, nullptr);
@@ -748,7 +756,7 @@ void VulkanRenderer::CreateFrameBuffers()
       framebufferCreateInfo.height = m_vkSwapchainExtent.height;                 // Framebuffer height.
       framebufferCreateInfo.layers = 1;                                          // Framebuffer layers.
 
-      CREATION_SUCCEEDED(vkCreateFramebuffer(m_vkMainDevice.logicalDevice, &framebufferCreateInfo, nullptr, &m_vecSwapchainFramebuffers[i]), "Failed to create a Framebuffer!")
+      CREATION_SUCCEEDED(vkCreateFramebuffer(m_vkMainDevice.logicalDevice, &framebufferCreateInfo, nullptr, &m_vecSwapchainFramebuffers[i]), "Failed to create a Framebuffer!");
    }
 }
 
@@ -763,7 +771,7 @@ void VulkanRenderer::CreateCommandPool()
    poolInfo.queueFamilyIndex = queueFammilyIndices.graphicsFamily;               // Queue family type that buffers from this command pool will use.
 
    // Create a Graphics Queue family command pool.
-   CREATION_SUCCEEDED(vkCreateCommandPool(m_vkMainDevice.logicalDevice, &poolInfo, nullptr, &m_vkGraphicsCommandPool), "Failed to create a command pool!")
+   CREATION_SUCCEEDED(vkCreateCommandPool(m_vkMainDevice.logicalDevice, &poolInfo, nullptr, &m_vkGraphicsCommandPool), "Failed to create a command pool!");
 }
 
 void VulkanRenderer::CreateCommandBuffers()
@@ -778,7 +786,7 @@ void VulkanRenderer::CreateCommandBuffers()
                                                                                  // VK_COMMAND_BUFFER_LEVEL_SECONDARY : Buffer can't be submitted to queue. Can be called from other buffers via "vkCommandExecuteCommands" on primary buffers.
    cbAllocInfo.commandBufferCount = static_cast<uint32_t>(m_vecCommandBuffers.size());
 
-   CREATION_SUCCEEDED(vkAllocateCommandBuffers(m_vkMainDevice.logicalDevice, &cbAllocInfo, m_vecCommandBuffers.data()), "Failed to allocate command buffers!")
+   CREATION_SUCCEEDED(vkAllocateCommandBuffers(m_vkMainDevice.logicalDevice, &cbAllocInfo, m_vecCommandBuffers.data()), "Failed to allocate command buffers!");
 }
 
 void VulkanRenderer::CreateSynchronization()
@@ -798,9 +806,9 @@ void VulkanRenderer::CreateSynchronization()
 
    for (size_t i = 0; i < MAX_FRAME_DRAWS; i++)
    {
-      CREATION_SUCCEEDED(vkCreateSemaphore(m_vkMainDevice.logicalDevice, &semaphoreCreateInfo, nullptr, &m_vecSemImageAvailable[i]), "Failed to create a imageAvailable semaphore!")
-      CREATION_SUCCEEDED(vkCreateSemaphore(m_vkMainDevice.logicalDevice, &semaphoreCreateInfo, nullptr, &m_vecSemRenderFinished[i]), "Failed to create a RenderFinished semaphore!")
-      CREATION_SUCCEEDED(vkCreateFence(m_vkMainDevice.logicalDevice, &fenceInfo, nullptr, &m_vecDrawFences[i]), "Failed to create a fence!")
+      CREATION_SUCCEEDED(vkCreateSemaphore(m_vkMainDevice.logicalDevice, &semaphoreCreateInfo, nullptr, &m_vecSemImageAvailable[i]), "Failed to create a imageAvailable semaphore!");
+      CREATION_SUCCEEDED(vkCreateSemaphore(m_vkMainDevice.logicalDevice, &semaphoreCreateInfo, nullptr, &m_vecSemRenderFinished[i]), "Failed to create a RenderFinished semaphore!");
+      CREATION_SUCCEEDED(vkCreateFence(m_vkMainDevice.logicalDevice, &fenceInfo, nullptr, &m_vecDrawFences[i]), "Failed to create a fence!");
    }
 }
 
@@ -853,7 +861,7 @@ void VulkanRenderer::CreateDescriptorPool()
    poolCreateInfo.pPoolSizes = descriptorPoolSizes.data();                             // Pool sizes to create pool with.
 
    // Create descriptor pool.
-   CREATION_SUCCEEDED(vkCreateDescriptorPool(m_vkMainDevice.logicalDevice, &poolCreateInfo, nullptr, &m_vkDescriptorPool), "Failed to create a Descriptor Pool!")
+   CREATION_SUCCEEDED(vkCreateDescriptorPool(m_vkMainDevice.logicalDevice, &poolCreateInfo, nullptr, &m_vkDescriptorPool), "Failed to create a Descriptor Pool!");
 }
 
 void VulkanRenderer::CreateDescriptorSets()
@@ -871,7 +879,7 @@ void VulkanRenderer::CreateDescriptorSets()
    setAllocInfo.pSetLayouts = setLayouts.data();                                          // Layouts to use to allocate sets. (1:1 relationship)
 
    // Allocate descriptor sets. (multiple)
-   CREATION_SUCCEEDED(vkAllocateDescriptorSets(m_vkMainDevice.logicalDevice, &setAllocInfo, m_vecDescriptorSets.data()), "Failed to allocate descriptor set!")
+   CREATION_SUCCEEDED(vkAllocateDescriptorSets(m_vkMainDevice.logicalDevice, &setAllocInfo, m_vecDescriptorSets.data()), "Failed to allocate descriptor set!");
 
    // Update all of descriptor set buffer bindings.
    for (size_t i = 0; i < m_vecSwapchainImages.size(); i++)
@@ -961,7 +969,7 @@ void VulkanRenderer::RecordCommands(uint32_t currentImage)
    renderpassBeginInfo.framebuffer = m_vecSwapchainFramebuffers[currentImage];
 
    // Start recording commands to command buffer.
-   CREATION_SUCCEEDED(vkBeginCommandBuffer(m_vecCommandBuffers[currentImage], &bufferBeginInfo), "Failed to start recording a command buffer!")
+   CREATION_SUCCEEDED(vkBeginCommandBuffer(m_vecCommandBuffers[currentImage], &bufferBeginInfo), "Failed to start recording a command buffer!");
 
       // Begin render pass.
       vkCmdBeginRenderPass(m_vecCommandBuffers[currentImage], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -997,7 +1005,7 @@ void VulkanRenderer::RecordCommands(uint32_t currentImage)
       vkCmdEndRenderPass(m_vecCommandBuffers[currentImage]);
 
    // Strop recording to command buffer.
-   CREATION_SUCCEEDED(vkEndCommandBuffer(m_vecCommandBuffers[currentImage]), "Failed to stop recording a command buffer!")
+   CREATION_SUCCEEDED(vkEndCommandBuffer(m_vecCommandBuffers[currentImage]), "Failed to stop recording a command buffer!");
 }
 
 void VulkanRenderer::GetPhysicalDevice()
@@ -1365,7 +1373,7 @@ VkImageView VulkanRenderer::CreateImageView(VkImage image, VkFormat format, VkIm
 
    // Create image view and return it.
    VkImageView imageView;
-   CREATION_SUCCEEDED(vkCreateImageView(m_vkMainDevice.logicalDevice, &viewCreateInfo, nullptr, &imageView), "Failed to create an Image View!")
+   CREATION_SUCCEEDED(vkCreateImageView(m_vkMainDevice.logicalDevice, &viewCreateInfo, nullptr, &imageView), "Failed to create an Image View!");
 
    return imageView;
 }
@@ -1379,9 +1387,82 @@ VkShaderModule VulkanRenderer::CreateShaderModule(const std::vector<char>& code)
    shaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t *>(code.data());
 
    VkShaderModule shaderModule;
-   CREATION_SUCCEEDED(vkCreateShaderModule(m_vkMainDevice.logicalDevice, &shaderModuleCreateInfo, nullptr, &shaderModule), "Failed to create a shader module!")
+   CREATION_SUCCEEDED(vkCreateShaderModule(m_vkMainDevice.logicalDevice, &shaderModuleCreateInfo, nullptr, &shaderModule), "Failed to create a shader module!");
 
    return shaderModule;
+}
+
+uint32_t VulkanRenderer::CreateTexture(std::string fileName)
+{
+   // Load image file.
+   int width, height;
+   VkDeviceSize imageSize;
+   stbi_uc* imageData = LoadTextureFile(fileName, &width, &height, &imageSize);
+
+   // Create staging buffer to hold loaded data, ready to copy to device.
+   VkBuffer imageStagingBuffer;
+   VkDeviceMemory imageStagingBufferMemory;
+   CreateBuffer(m_vkMainDevice.physicalDevice, m_vkMainDevice.logicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+      &imageStagingBuffer, &imageStagingBufferMemory);
+
+   // Copy image data to staging buffer.
+   void* data;
+   vkMapMemory(m_vkMainDevice.logicalDevice, imageStagingBufferMemory, 0, imageSize, 0, &data);
+   memcpy(data, imageData, static_cast<size_t>(imageSize));
+   vkUnmapMemory(m_vkMainDevice.logicalDevice, imageStagingBufferMemory);
+
+   // Free original image data.
+   stbi_image_free(imageData);
+
+   // Create image to hold final texture.
+   VkImage texImage;
+   VkDeviceMemory texImageMemory;
+   texImage = CreateImage(width, height, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      &texImageMemory);
+
+
+   // COPY DATA TO IMAGE.
+   // Transition image to be DST for copy operation.
+   TransitionImageLayout(m_vkMainDevice.logicalDevice, m_vkGraphicsQueue, m_vkGraphicsCommandPool, texImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+   // Copy image data.
+   CopyImageBuffer(m_vkMainDevice.logicalDevice, m_vkGraphicsQueue, m_vkGraphicsCommandPool, imageStagingBuffer, texImage, width, height);
+
+   // Transition image to be shader readable for shader usage.
+   TransitionImageLayout(m_vkMainDevice.logicalDevice, m_vkGraphicsQueue, m_vkGraphicsCommandPool, texImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+   // Add texture data to vector for reference.
+   m_vkTextureImages.push_back(texImage);
+   m_vkTextureImageMemory.push_back(texImageMemory);
+
+   // Destroy staging buffers.
+   vkDestroyBuffer(m_vkMainDevice.logicalDevice, imageStagingBuffer, nullptr);
+   vkFreeMemory(m_vkMainDevice.logicalDevice, imageStagingBufferMemory, nullptr);
+
+   // Return index of new texture image.
+   return m_vkTextureImages.size() - 1;
+}
+
+stbi_uc* VulkanRenderer::LoadTextureFile(std::string fileName, int* width, int* height, VkDeviceSize* imageSize)
+{
+   // Number of channels image uses.
+   int channels;
+
+   // Load pixel data for image.
+   std::string fileLoc = "Textures/" + fileName;
+   stbi_uc* image = stbi_load(fileLoc.c_str(), width, height, &channels, STBI_rgb_alpha);
+
+   if (!image)
+   {
+      throw std::runtime_error("Failed to load a Texture file! (" + fileName + ")");
+   }
+
+   // Calculate image size using given and known data.
+   *imageSize = (*width) * (*height) * 4;
+
+   return image;
 }
 
 #ifdef VK_DEBUG
