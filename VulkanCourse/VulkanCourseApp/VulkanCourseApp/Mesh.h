@@ -16,13 +16,16 @@ class Mesh
 public:
    Mesh();
    Mesh(VkPhysicalDevice newPhysicalDevice, VkDevice newDevice, VkQueue transferQueue,
-        VkCommandPool transferCommandPool, std::vector<Vertex>* vertices, std::vector<uint32_t>* indices);
+        VkCommandPool transferCommandPool, std::vector<Vertex>* vertices, std::vector<uint32_t>* indices,
+        uint32_t newTexId);
    ~Mesh();
 
    void Deinit();
 
    void SetModel(glm::mat4 newModel);
    Model GetModel();
+
+   uint32_t GetTexId();
 
    uint32_t GetVertexCount();
    VkBuffer GetVertexBuffer();
@@ -35,6 +38,7 @@ private:
    void CreateIndexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, std::vector<uint32_t>* indices);
 
    Model m_model;
+   uint32_t m_texId;
 
    uint32_t m_iVertexCount;
    VkBuffer m_vkVertexBuffer;

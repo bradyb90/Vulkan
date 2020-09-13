@@ -46,6 +46,7 @@ private:
    void CreateCommandPool();
    void CreateCommandBuffers();
    void CreateSynchronization();
+   void CreateTextureSampler();
 
    void CreateUniformBuffers();
    void CreateDescriptorPool();
@@ -84,7 +85,9 @@ private:
    VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
    VkShaderModule CreateShaderModule(const std::vector<char>& code);
 
+   uint32_t CreateTextureImage(std::string fileName);
    uint32_t CreateTexture(std::string fileName);
+   uint32_t CreateTextureDescriptor(VkImageView textureImage);
 
    // -- Loader Functions.
    stbi_uc* LoadTextureFile(std::string fileName, int* width, int* height, VkDeviceSize* imageSize);
@@ -125,12 +128,17 @@ private:
    VkDeviceMemory m_vkDepthBufferImageMemory;
    VkImageView m_vkDepthBufferImageView;
 
+   VkSampler m_vkTextureSampler;
+
    // - Descriptors
    VkDescriptorSetLayout m_vkDescriptorSetLayout;
+   VkDescriptorSetLayout m_vkSamplerSetLayout;
    VkPushConstantRange m_vkPushConstantRange;
 
    VkDescriptorPool m_vkDescriptorPool;
+   VkDescriptorPool m_vkSamplerDescriptorPool;
    std::vector<VkDescriptorSet> m_vecDescriptorSets;
+   std::vector< VkDescriptorSet> m_vkSamplerDescriptorSets;
 
    std::vector<VkBuffer> m_vecVpUniformBuffer;
    std::vector<VkDeviceMemory> m_vecVpUniformBufferMemory;
@@ -145,6 +153,7 @@ private:
    // - Assets.
    std::vector<VkImage> m_vkTextureImages;
    std::vector<VkDeviceMemory> m_vkTextureImageMemory;
+   std::vector<VkImageView> m_vkTextureImageViews;
 
    // - Pipeline.
    VkPipeline m_vkGraphicsPipeline;
